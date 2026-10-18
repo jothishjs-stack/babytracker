@@ -96,10 +96,16 @@
     </div>
   </div>
 
+  <!-- Supabase Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
+    const supabaseUrl = "https://svsufkmkvdlsqkbmaith.supabase.co";
+    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN2c3Vma21rdmRsc3FrYm1haXRoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIzMDU1NTQsImV4cCI6MjEwNzg4MTU1NH0.Y8qw6ZbwarBk301fR4R-7hbowdguzOKWb_8FVNijNkw"; // replace with your anon key
+    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
     let lastEventTime = { Harsh: null, Dev: null };
 
-    function logEvent(event, baby) {
+    async function logEvent(event, baby) {
       event.preventDefault();
       const form = event.target;
       const type = form.eventType.value;
@@ -107,16 +113,19 @@
       const notes = form.notes.value;
       const time = new Date();
 
-      const entry = document.createElement('div');
-      entry.className = 'entry';
-      entry.innerHTML = `<strong>${time.toLocaleString()}</strong><br>${type}: ${details}<br>Notes: ${notes}`;
+      // Insert into Supabase
+      const { data, error } = await supabase
+        .from('baby_logs')
+        .insert([
+          { baby_name: baby, event_type: type, details: details, notes: notes }
+        ]);
 
-      const logDiv = document.getElementById('log' + baby + '_' + type.toLowerCase());
-      logDiv.prepend(entry);
-
-      // Keep only last 5 logs per type
-      while (logDiv.children.length > 5) {
-        logDiv.removeChild(logDiv.lastChild);
+      if (error) {
+        console.error("Insert error:", error);
+        alert("Error saving log!");
+      } else {
+        console.log("Inserted:", data);
+        alert("Log saved for " + baby);
       }
 
       form.reset();
