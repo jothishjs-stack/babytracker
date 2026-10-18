@@ -12,7 +12,7 @@
     .entry { background: #eef; padding: 10px; margin-bottom: 10px; border-radius: 5px; }
     .timer { margin-top: 10px; font-weight: bold; color: #d9534f; }
     label { display: block; margin-top: 10px; }
-    select, textarea { width: 100%; padding: 6px; margin-top: 5px; }
+    select { width: 100%; padding: 6px; margin-top: 5px; }
     button { margin-top: 10px; padding: 8px 12px; background: #4CAF50; color: white; border: none; cursor: pointer; }
     button:hover { background: #45a049; }
   </style>
@@ -29,19 +29,6 @@
           <option value="Feeding">Feeding</option>
           <option value="Diaper">Diaper Change</option>
         </select>
-      </label>
-      <label>Details:
-        <select name="details">
-          <option value="Breastfeeding">Breastfeeding</option>
-          <option value="Bottle">Bottle</option>
-          <option value="Solid Food">Solid Food</option>
-          <option value="Wet">Wet Diaper</option>
-          <option value="Dirty">Dirty Diaper</option>
-          <option value="Mixed">Mixed Diaper</option>
-        </select>
-      </label>
-      <label>Quantity/Notes:
-        <textarea name="notes"></textarea>
       </label>
       <button type="submit">Log Event</button>
     </form>
@@ -68,19 +55,6 @@
           <option value="Diaper">Diaper Change</option>
         </select>
       </label>
-      <label>Details:
-        <select name="details">
-          <option value="Breastfeeding">Breastfeeding</option>
-          <option value="Bottle">Bottle</option>
-          <option value="Solid Food">Solid Food</option>
-          <option value="Wet">Wet Diaper</option>
-          <option value="Dirty">Dirty Diaper</option>
-          <option value="Mixed">Mixed Diaper</option>
-        </select>
-      </label>
-      <label>Quantity/Notes:
-        <textarea name="notes"></textarea>
-      </label>
       <button type="submit">Log Event</button>
     </form>
     <div class="timer" id="timerDev">⏱ Last event: none</div>
@@ -105,33 +79,61 @@
 
     let lastEventTime = { Harsh: null, Dev: null };
 
+    // Insert into Supabase
     async function logEvent(event, baby) {
       event.preventDefault();
       const form = event.target;
       const type = form.eventType.value;
-      const details = form.details.value;
-      const notes = form.notes.value;
       const time = new Date();
 
-      // Insert into Supabase
       const { data, error } = await supabase
         .from('baby_logs')
-        .insert([
-          { baby_name: baby, event_type: type, details: details, notes: notes }
-        ]);
+        .insert([{ baby_name: baby, event_type: type }]);
 
       if (error) {
         console.error("Insert error:", error);
         alert("Error saving log!");
       } else {
         console.log("Inserted:", data);
-        alert("Log saved for " + baby);
+        loadLogs(baby); // refresh logs after insert
       }
 
       form.reset();
       lastEventTime[baby] = time;
     }
 
+    // Fetch last 5 logs from Supabase
+    async function loadLogs(baby) {
+      const { data, error } = await supabase
+        .from('baby_logs')
+        .select('created_at,event_type')
+        .eq('baby_name', baby)
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      if (error) {
+        console.error("Fetch error:", error);
+        return;
+      }
+
+      const feedingDiv = document.getElementById('log' + baby + '_feeding');
+      const diaperDiv = document.getElementById('log' + baby + '_diaper');
+      feedingDiv.innerHTML = '';
+      diaperDiv.innerHTML = '';
+
+      data.forEach(entry => {
+        const div = document.createElement('div');
+        div.className = 'entry';
+        div.innerHTML = `<strong>${new Date(entry.created_at).toLocaleString()}</strong>`;
+        if (entry.event_type === 'Feeding') {
+          feedingDiv.appendChild(div);
+        } else {
+          diaperDiv.appendChild(div);
+        }
+      });
+    }
+
+    // Update timers
     function updateTimers() {
       ['Harsh','Dev'].forEach(baby => {
         const timerDiv = document.getElementById('timer' + baby);
@@ -151,6 +153,12 @@
     }
 
     setInterval(updateTimers, 1000);
+
+    // Load logs on page load
+    window.onload = () => {
+      loadLogs("Harsh");
+      loadLogs("Dev");
+    };
   </script>
 </body>
 </html>
