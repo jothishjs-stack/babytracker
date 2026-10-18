@@ -2,45 +2,75 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Harsh & Dev Feeding & Diaper Tracker</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; background: #f9f9f9; }
-    h2 { color: #333; }
-    .baby-section { border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; background: #fff; border-radius: 8px; }
-    .log-container { display: flex; gap: 20px; margin-top: 15px; }
-    .log-column { flex: 1; background: #fafafa; padding: 10px; border-radius: 5px; border: 1px solid #eee; }
-    .entry { background: #eef; padding: 8px; margin-bottom: 8px; border-radius: 4px; font-size: 14px; }
-    .timer { margin-top: 8px; margin-bottom: 10px; font-weight: bold; font-size: 13px; }
-    label { display: block; margin-top: 10px; }
-    select, textarea { width: 100%; padding: 6px; margin-top: 5px; box-sizing: border-box; }
-    button { margin-top: 10px; padding: 8px 12px; background: #4CAF50; color: white; border: none; cursor: pointer; border-radius: 4px; }
+    body { font-family: Arial, sans-serif; margin: 10px; background: #f9f9f9; box-sizing: border-box; }
+    h1 { font-size: 22px; text-align: center; margin-bottom: 15px; }
+    h2 { color: #333; font-size: 18px; margin-top: 0; }
+    h3 { font-size: 15px; }
+    .baby-section { border: 1px solid #ccc; padding: 12px; margin-bottom: 15px; background: #fff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .log-container { display: flex; flex-direction: column; gap: 15px; margin-top: 15px; }
+    @media (min-width: 600px) {
+      .log-container { flex-direction: row; }
+    }
+    .log-column { flex: 1; background: #fafafa; padding: 10px; border-radius: 5px; border: 1px solid #eee; overflow-x: auto; }
+    .entry { background: #eef; padding: 8px; margin-bottom: 8px; border-radius: 4px; font-size: 13px; word-break: break-word; }
+    .timer { margin-top: 6px; margin-bottom: 8px; font-weight: bold; font-size: 12px; }
+    label { display: block; margin-top: 8px; font-size: 14px; font-weight: bold; color: #444; }
+    select, textarea, input[type="datetime-local"], input[type="text"] { width: 100%; padding: 8px; margin-top: 4px; box-sizing: border-box; font-size: 14px; border: 1px solid #ccc; border-radius: 4px; }
+    textarea { resize: vertical; height: 50px; }
+    button { margin-top: 12px; width: 100%; padding: 10px; background: #4CAF50; color: white; border: none; cursor: pointer; border-radius: 4px; font-size: 16px; font-weight: bold; }
     button:hover { background: #45a049; }
   </style>
 </head>
 <body>
-  <h1>🍼 Harsh & Dev Feeding & Diaper Tracker</h1>
+  <h1>🍼 Harsh & Dev Tracker</h1>
 
   <!-- Harsh Section -->
   <div class="baby-section" id="babyHarsh">
     <h2>Harsh</h2>
     <form onsubmit="logEvent(event, 'Harsh')">
       <label>Event Type:
-        <select name="eventType">
+        <select name="eventType" onchange="toggleEventType(this, 'Harsh')">
           <option value="Feeding">Feeding</option>
           <option value="Diaper">Diaper Change</option>
         </select>
       </label>
-      <label>Details:
-        <select name="details">
-          <option value="Breastfeeding">Breastfeeding</option>
-          <option value="Bottle">Bottle</option>
-          <option value="Solid Food">Solid Food</option>
-          <option value="Wet">Wet Diaper</option>
-          <option value="Dirty">Dirty Diaper</option>
-          <option value="Mixed">Mixed Diaper</option>
-        </select>
+
+      <!-- Feeding Quantity Group -->
+      <div id="feedingGroup_Harsh">
+        <label>Quantity:
+          <select name="quantitySelect" onchange="toggleQuantityManual(this, 'Harsh')">
+            <option value="30ml">30ml</option>
+            <option value="60ml">60ml</option>
+            <option value="90ml">90ml</option>
+            <option value="100ml">100ml</option>
+            <option value="110ml">110ml</option>
+            <option value="120ml">120ml</option>
+            <option value="Manual">Manual Entry</option>
+          </select>
+        </label>
+        <div id="manualQuantityDiv_Harsh" style="display:none; margin-top: 5px;">
+          <input type="text" name="manualQuantity" placeholder="Enter custom ml (e.g., 75ml)">
+        </div>
+      </div>
+
+      <!-- Diaper Type Group (Hidden by default) -->
+      <div id="diaperGroup_Harsh" style="display:none;">
+        <label>Diaper Type:
+          <select name="diaperType">
+            <option value="Wet">Wet</option>
+            <option value="Dirty">Dirty</option>
+            <option value="Mixed">Mixed</option>
+          </select>
+        </label>
+      </div>
+
+      <label>Custom Date & Time (Optional):
+        <input type="datetime-local" name="customTime">
       </label>
-      <label>Quantity/Notes:
+      <label>Notes (Optional):
         <textarea name="notes"></textarea>
       </label>
       <button type="submit">Log Event</button>
@@ -65,22 +95,45 @@
     <h2>Dev</h2>
     <form onsubmit="logEvent(event, 'Dev')">
       <label>Event Type:
-        <select name="eventType">
+        <select name="eventType" onchange="toggleEventType(this, 'Dev')">
           <option value="Feeding">Feeding</option>
           <option value="Diaper">Diaper Change</option>
         </select>
       </label>
-      <label>Details:
-        <select name="details">
-          <option value="Breastfeeding">Breastfeeding</option>
-          <option value="Bottle">Bottle</option>
-          <option value="Solid Food">Solid Food</option>
-          <option value="Wet">Wet Diaper</option>
-          <option value="Dirty">Dirty Diaper</option>
-          <option value="Mixed">Mixed Diaper</option>
-        </select>
+
+      <!-- Feeding Quantity Group -->
+      <div id="feedingGroup_Dev">
+        <label>Quantity:
+          <select name="quantitySelect" onchange="toggleQuantityManual(this, 'Dev')">
+            <option value="30ml">30ml</option>
+            <option value="60ml">60ml</option>
+            <option value="90ml">90ml</option>
+            <option value="100ml">100ml</option>
+            <option value="110ml">110ml</option>
+            <option value="120ml">120ml</option>
+            <option value="Manual">Manual Entry</option>
+          </select>
+        </label>
+        <div id="manualQuantityDiv_Dev" style="display:none; margin-top: 5px;">
+          <input type="text" name="manualQuantity" placeholder="Enter custom ml (e.g., 75ml)">
+        </div>
+      </div>
+
+      <!-- Diaper Type Group (Hidden by default) -->
+      <div id="diaperGroup_Dev" style="display:none;">
+        <label>Diaper Type:
+          <select name="diaperType">
+            <option value="Wet">Wet</option>
+            <option value="Dirty">Dirty</option>
+            <option value="Mixed">Mixed</option>
+          </select>
+        </label>
+      </div>
+
+      <label>Custom Date & Time (Optional):
+        <input type="datetime-local" name="customTime">
       </label>
-      <label>Quantity/Notes:
+      <label>Notes (Optional):
         <textarea name="notes"></textarea>
       </label>
       <button type="submit">Log Event</button>
@@ -103,7 +156,7 @@
   <!-- Firebase SDKs -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-    import { getFirestore, collection, addDoc, query, where, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, query, onSnapshot, Timestamp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
     // Your Firebase Configuration Credentials
     const firebaseConfig = {
@@ -124,28 +177,75 @@
       Dev: { feeding: null, diaper: null }
     };
 
+    // Toggle event options dynamically
+    window.toggleEventType = function(selectElem, baby) {
+      const type = selectElem.value;
+      const feedingGroup = document.getElementById('feedingGroup_' + baby);
+      const diaperGroup = document.getElementById('diaperGroup_' + baby);
+
+      if (type === 'Feeding') {
+        feedingGroup.style.display = 'block';
+        diaperGroup.style.display = 'none';
+      } else {
+        feedingGroup.style.display = 'none';
+        diaperGroup.style.display = 'block';
+      }
+    };
+
+    // Toggle manual quantity input
+    window.toggleQuantityManual = function(selectElem, baby) {
+      const manualDiv = document.getElementById('manualQuantityDiv_' + baby);
+      if (selectElem.value === 'Manual') {
+        manualDiv.style.display = 'block';
+      } else {
+        manualDiv.style.display = 'none';
+      }
+    };
+
     // Function to submit new logs to Firebase
     window.logEvent = async function(event, baby) {
       event.preventDefault();
       const form = event.target;
       const type = form.eventType.value;
-      const details = form.details.value;
       const notes = form.notes.value;
+      const customTimeInput = form.customTime.value;
+
+      // Ensure proper Date parsing whether customTime is provided or current time is used
+      const eventDate = customTimeInput ? new Date(customTimeInput) : new Date();
+      const logTimestamp = Timestamp.fromDate(eventDate);
+
+      let logData = {
+        baby_name: baby,
+        event_type: type,
+        notes: notes,
+        created_at: logTimestamp
+      };
+
+      if (type === 'Feeding') {
+        const qSelect = form.quantitySelect.value;
+        logData.quantity = qSelect === 'Manual' ? form.manualQuantity.value : qSelect;
+      } else {
+        logData.diaper_type = form.diaperType.value;
+      }
 
       try {
-        await addDoc(collection(db, "baby_logs"), {
-          baby_name: baby,
-          event_type: type,
-          details: details,
-          notes: notes,
-          created_at: serverTimestamp()
-        });
+        await addDoc(collection(db, "baby_logs"), logData);
         form.reset();
+        toggleEventType(form.eventType, baby);
       } catch (error) {
         console.error("Error adding document: ", error);
         alert("Error saving log!");
       }
     };
+
+    // Helper function to convert created_at into a standard JS Date object
+    function getEntryDate(entry) {
+      if (!entry.created_at) return null;
+      if (typeof entry.created_at.toDate === 'function') {
+        return entry.created_at.toDate();
+      }
+      return new Date(entry.created_at);
+    }
 
     // Function to render columns and capture latest timestamps
     function renderLogs(baby, docs) {
@@ -156,50 +256,57 @@
 
       let entries = docs.map(doc => doc.data()).filter(entry => entry.created_at);
       
-      // Sort newest entries first based on timestamp
-      entries.sort((a, b) => b.created_at.toMillis() - a.created_at.toMillis());
+      // Sort entries strictly in descending chronological order based on actual event timestamp
+      entries.sort((a, b) => {
+        const dateA = getEntryDate(a);
+        const dateB = getEntryDate(b);
+        return dateB - dateA;
+      });
 
       let feedingEntries = entries.filter(entry => entry.event_type === 'Feeding');
       let diaperEntries = entries.filter(entry => entry.event_type === 'Diaper');
 
-      // Track last event times separately for timers
-      lastEventTime[baby].feeding = feedingEntries.length > 0 ? feedingEntries[0].created_at.toDate() : null;
-      lastEventTime[baby].diaper = diaperEntries.length > 0 ? diaperEntries[0].created_at.toDate() : null;
+      // Update the last event times strictly using the most recent entry chronologically
+      lastEventTime[baby].feeding = feedingEntries.length > 0 ? getEntryDate(feedingEntries[0]) : null;
+      lastEventTime[baby].diaper = diaperEntries.length > 0 ? getEntryDate(diaperEntries[0]) : null;
 
       // Render last 5 feeding logs
       feedingEntries.slice(0, 5).forEach(entry => {
-        const dateObj = entry.created_at.toDate();
+        const dateObj = getEntryDate(entry);
         const div = document.createElement('div');
         div.className = 'entry';
-        div.innerHTML = `<strong>${dateObj.toLocaleString()}</strong><br>Details: ${entry.details}<br>Notes: ${entry.notes || 'None'}`;
+        let qtyText = entry.quantity ? `<br>Quantity: ${entry.quantity}` : '';
+        div.innerHTML = `<strong>${dateObj.toLocaleString()}</strong>${qtyText}<br>Notes: ${entry.notes || 'None'}`;
         feedingDiv.appendChild(div);
       });
 
       // Render last 5 diaper logs
       diaperEntries.slice(0, 5).forEach(entry => {
-        const dateObj = entry.created_at.toDate();
+        const dateObj = getEntryDate(entry);
         const div = document.createElement('div');
         div.className = 'entry';
-        div.innerHTML = `<strong>${dateObj.toLocaleString()}</strong><br>Details: ${entry.details}<br>Notes: ${entry.notes || 'None'}`;
+        let diaperTypeStr = entry.diaper_type ? `<br>Type: ${entry.diaper_type}` : '';
+        div.innerHTML = `<strong>${dateObj.toLocaleString()}</strong>${diaperTypeStr}<br>Notes: ${entry.notes || 'None'}`;
         diaperDiv.appendChild(div);
       });
+
+      // Trigger timer updates immediately upon rendering new data
+      updateTimers();
     }
 
     // Real-time listener for each baby
     ['Harsh', 'Dev'].forEach(baby => {
-      const q = query(
-        collection(db, "baby_logs"),
-        where("baby_name", "==", baby)
-      );
+      const q = query(collection(db, "baby_logs"));
 
       onSnapshot(q, (snapshot) => {
-        renderLogs(baby, snapshot.docs);
+        const babyDocs = snapshot.docs.filter(doc => doc.data().baby_name === baby);
+        renderLogs(baby, babyDocs);
       }, (error) => {
         console.error("Realtime fetch error for " + baby + ": ", error);
       });
     });
 
-    // Update separate timers with color thresholds every second
+    // Update separate timers with color thresholds every second based on last event time
     function updateTimers() {
       ['Harsh', 'Dev'].forEach(baby => {
         // --- Feeding Timer ---
