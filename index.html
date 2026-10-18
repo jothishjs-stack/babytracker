@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ml">
+<head>
+  <meta charset="UTF-8">
+  <title>Baby Tracker</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; background: #f9f9f9; }
+    h2 { color: #333; }
+    .baby-section { border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; background: #fff; }
+    .log-container { display: flex; gap: 20px; }
+    .log-column { flex: 1; }
+    .entry { background: #eef; padding: 10px; margin-bottom: 10px; border-radius: 5px; }
+    .timer { margin-top: 10px; font-weight: bold; color: #d9534f; }
+    label { display: block; margin-top: 10px; }
+    select, textarea { width: 100%; padding: 6px; margin-top: 5px; }
+    button { margin-top: 10px; padding: 8px 12px; background: #4CAF50; color: white; border: none; cursor: pointer; }
+    button:hover { background: #45a049; }
+  </style>
+</head>
+<body>
+  <h1>🍼 Twin Baby Feeding & Diaper Tracker</h1>
+
+  <!-- Baby A Section -->
+  <div class="baby-section" id="babyA">
+    <h2>Baby A</h2>
+    <form onsubmit="logEvent(event, 'A')">
+      <label>Event Type:
+        <select name="eventType">
+          <option value="Feeding">Feeding</option>
+          <option value="Diaper">Diaper Change</option>
+        </select>
+      </label>
+      <label>Details:
+        <select name="details">
+          <option value="Breastfeeding">Breastfeeding</option>
+          <option value="Bottle">Bottle</option>
+          <option value="Solid Food">Solid Food</option>
+          <option value="Wet">Wet Diaper</option>
+          <option value="Dirty">Dirty Diaper</option>
+          <option value="Mixed">Mixed Diaper</option>
+        </select>
+      </label>
+      <label>Quantity/Notes:
+        <textarea name="notes"></textarea>
+      </label>
+      <button type="submit">Log Event</button>
+    </form>
+    <div class="timer" id="timerA">⏱ Last event: none</div>
+    <div class="log-container">
+      <div class="log-column">
+        <h3>Feeding Logs</h3>
+        <div class="log" id="logA_feeding"></div>
+      </div>
+      <div class="log-column">
+        <h3>Diaper Logs</h3>
+        <div class="log" id="logA_diaper"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Baby B Section -->
+  <div class="baby-section" id="babyB">
+    <h2>Baby B</h2>
+    <form onsubmit="logEvent(event, 'B')">
+      <label>Event Type:
+        <select name="eventType">
+          <option value="Feeding">Feeding</option>
+          <option value="Diaper">Diaper Change</option>
+        </select>
+      </label>
+      <label>Details:
+        <select name="details">
+          <option value="Breastfeeding">Breastfeeding</option>
+          <option value="Bottle">Bottle</option>
+          <option value="Solid Food">Solid Food</option>
+          <option value="Wet">Wet Diaper</option>
+          <option value="Dirty">Dirty Diaper</option>
+          <option value="Mixed">Mixed Diaper</option>
+        </select>
+      </label>
+      <label>Quantity/Notes:
+        <textarea name="notes"></textarea>
+      </label>
+      <button type="submit">Log Event</button>
+    </form>
+    <div class="timer" id="timerB">⏱ Last event: none</div>
+    <div class="log-container">
+      <div class="log-column">
+        <h3>Feeding Logs</h3>
+        <div class="log" id="logB_feeding"></div>
+      </div>
+      <div class="log-column">
+        <h3>Diaper Logs</h3>
+        <div class="log" id="logB_diaper"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let lastEventTime = { A: null, B: null };
+
+    function logEvent(event, baby) {
+      event.preventDefault();
+      const form = event.target;
+      const type = form.eventType.value;
+      const details = form.details.value;
+      const notes = form.notes.value;
+      const time = new Date();
+
+      const entry = document.createElement('div');
+      entry.className = 'entry';
+      entry.innerHTML = `<strong>${time.toLocaleString()}</strong><br>${type}: ${details}<br>Notes: ${notes}`;
+
+      const logDiv = document.getElementById('log' + baby + '_' + type.toLowerCase());
+      logDiv.prepend(entry);
+
+      // Keep only last 5 logs per type
+      while (logDiv.children.length > 5) {
+        logDiv.removeChild(logDiv.lastChild);
+      }
+
+      form.reset();
+      lastEventTime[baby] = time;
+    }
+
+    function updateTimers() {
+      ['A','B'].forEach(baby => {
+        const timerDiv = document.getElementById('timer' + baby);
+        if (lastEventTime[baby]) {
+          const diffMs = new Date() - lastEventTime[baby];
+          const diffMins = Math.floor(diffMs / 60000);
+          const hours = Math.floor(diffMins / 60);
+          const minutes = diffMins % 60;
+          const secs = Math.floor((diffMs % 60000) / 1000);
+
+          timerDiv.textContent =
+            hours > 0
+              ? `⏱ Last event: ${hours} hr ${minutes} min ${secs} sec ago`
+              : `⏱ Last event: ${minutes} min ${secs} sec ago`;
+        }
+      });
+    }
+
+    setInterval(updateTimers, 1000);
+  </script>
+</body>
+</html>
