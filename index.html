@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Harsh & Dev Baby Tracker</title>
+  <title>Harsh & Dev Feeding & Diaper Tracker</title>
   <style>
     body { font-family: Arial, sans-serif; margin: 20px; background: #f9f9f9; }
     h2 { color: #333; }
@@ -48,11 +48,11 @@
     <div class="timer" id="timerHarsh">⏱ Last event: none</div>
     <div class="log-container">
       <div class="log-column">
-        <h3>Feeding Logs</h3>
+        <h3>Feeding Logs (Last 5)</h3>
         <div id="logHarsh_feeding"></div>
       </div>
       <div class="log-column">
-        <h3>Diaper Logs</h3>
+        <h3>Diaper Logs (Last 5)</h3>
         <div id="logHarsh_diaper"></div>
       </div>
     </div>
@@ -86,22 +86,22 @@
     <div class="timer" id="timerDev">⏱ Last event: none</div>
     <div class="log-container">
       <div class="log-column">
-        <h3>Feeding Logs</h3>
+        <h3>Feeding Logs (Last 5)</h3>
         <div id="logDev_feeding"></div>
       </div>
       <div class="log-column">
-        <h3>Diaper Logs</h3>
+        <h3>Diaper Logs (Last 5)</h3>
         <div id="logDev_diaper"></div>
       </div>
     </div>
   </div>
 
-  <!-- Firebase SDKs (Modular via CDN) -->
+  <!-- Firebase SDKs -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-    import { getFirestore, collection, addDoc, query, where, orderBy, limit, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, query, where, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
-    // TODO: Replace this configuration with your actual Firebase project credentials
+    // Your Firebase Configuration Credentials
     const firebaseConfig = {
       apiKey: "AIzaSyA8_cUV3QeqWXuQD6wU0ebD3Cfab1CdekI",
       authDomain: "harshadevooda.firebaseapp.com",
@@ -112,13 +112,12 @@
       measurementId: "G-WWR07QV28M"
     };
 
-    // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
     let lastEventTime = { Harsh: null, Dev: null };
 
-    // Function to submit log entry to Firestore
+    // Function to submit new logs to Firebase
     window.logEvent = async function(event, baby) {
       event.preventDefault();
       const form = event.target;
@@ -141,32 +140,40 @@
       }
     };
 
-    // Function to render logs onto the webpage UI
+    // Function to render and split into respective columns, keeping the last 5 entries each
     function renderLogs(baby, docs) {
       const feedingDiv = document.getElementById('log' + baby + '_feeding');
       const diaperDiv = document.getElementById('log' + baby + '_diaper');
       feedingDiv.innerHTML = '';
       diaperDiv.innerHTML = '';
 
+      let entries = docs.map(doc => doc.data()).filter(entry => entry.created_at);
+      
+      // Sort newest entries first based on timestamp
+      entries.sort((a, b) => b.created_at.toMillis() - a.created_at.toMillis());
+
       let mostRecentTime = null;
+      let feedingCount = 0;
+      let diaperCount = 0;
 
-      docs.forEach(doc => {
-        const entry = doc.data();
-        if (!entry.created_at) return;
-
+      entries.forEach(entry => {
         const dateObj = entry.created_at.toDate();
+        
+        // Track the absolute most recent event time for the timer
         if (!mostRecentTime) {
           mostRecentTime = dateObj;
         }
 
         const div = document.createElement('div');
         div.className = 'entry';
-        div.innerHTML = `<strong>${dateObj.toLocaleString()}</strong><br>${entry.event_type}: ${entry.details}<br>Notes: ${entry.notes || 'None'}`;
+        div.innerHTML = `<strong>${dateObj.toLocaleString()}</strong><br>Details: ${entry.details}<br>Notes: ${entry.notes || 'None'}`;
 
-        if (entry.event_type === 'Feeding') {
+        if (entry.event_type === 'Feeding' && feedingCount < 5) {
           feedingDiv.appendChild(div);
-        } else {
+          feedingCount++;
+        } else if (entry.event_type === 'Diaper' && diaperCount < 5) {
           diaperDiv.appendChild(div);
+          diaperCount++;
         }
       });
 
@@ -175,13 +182,11 @@
       }
     }
 
-    // Set up Realtime listeners for Harsh and Dev
+    // Real-time listener for each baby
     ['Harsh', 'Dev'].forEach(baby => {
       const q = query(
         collection(db, "baby_logs"),
-        where("baby_name", "==", baby),
-        orderBy("created_at", "desc"),
-        limit(5)
+        where("baby_name", "==", baby)
       );
 
       onSnapshot(q, (snapshot) => {
