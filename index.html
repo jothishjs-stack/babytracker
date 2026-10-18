@@ -18,12 +18,12 @@
   </style>
 </head>
 <body>
-  <h1>🍼 Twin Baby Feeding & Diaper Tracker</h1>
+  <h1>🍼 Harsh & Dev Feeding & Diaper Tracker</h1>
 
-  <!-- Baby A Section -->
-  <div class="baby-section" id="babyA">
-    <h2>Baby A</h2>
-    <form onsubmit="logEvent(event, 'A')">
+  <!-- Harsh Section -->
+  <div class="baby-section" id="babyHarsh">
+    <h2>Harsh</h2>
+    <form onsubmit="logEvent(event, 'Harsh')">
       <label>Event Type:
         <select name="eventType">
           <option value="Feeding">Feeding</option>
@@ -45,23 +45,23 @@
       </label>
       <button type="submit">Log Event</button>
     </form>
-    <div class="timer" id="timerA">⏱ Last event: none</div>
+    <div class="timer" id="timerHarsh">⏱ Last event: none</div>
     <div class="log-container">
       <div class="log-column">
         <h3>Feeding Logs</h3>
-        <div class="log" id="logA_feeding"></div>
+        <div class="log" id="logHarsh_feeding"></div>
       </div>
       <div class="log-column">
         <h3>Diaper Logs</h3>
-        <div class="log" id="logA_diaper"></div>
+        <div class="log" id="logHarsh_diaper"></div>
       </div>
     </div>
   </div>
 
-  <!-- Baby B Section -->
-  <div class="baby-section" id="babyB">
-    <h2>Baby B</h2>
-    <form onsubmit="logEvent(event, 'B')">
+  <!-- Dev Section -->
+  <div class="baby-section" id="babyDev">
+    <h2>Dev</h2>
+    <form onsubmit="logEvent(event, 'Dev')">
       <label>Event Type:
         <select name="eventType">
           <option value="Feeding">Feeding</option>
@@ -83,21 +83,21 @@
       </label>
       <button type="submit">Log Event</button>
     </form>
-    <div class="timer" id="timerB">⏱ Last event: none</div>
+    <div class="timer" id="timerDev">⏱ Last event: none</div>
     <div class="log-container">
       <div class="log-column">
         <h3>Feeding Logs</h3>
-        <div class="log" id="logB_feeding"></div>
+        <div class="log" id="logDev_feeding"></div>
       </div>
       <div class="log-column">
         <h3>Diaper Logs</h3>
-        <div class="log" id="logB_diaper"></div>
+        <div class="log" id="logDev_diaper"></div>
       </div>
     </div>
   </div>
 
   <script>
-    let lastEventTime = { A: null, B: null };
+    let lastEventTime = { Harsh: null, Dev: null };
 
     function logEvent(event, baby) {
       event.preventDefault();
@@ -124,7 +124,7 @@
     }
 
     function updateTimers() {
-      ['A','B'].forEach(baby => {
+      ['Harsh','Dev'].forEach(baby => {
         const timerDiv = document.getElementById('timer' + baby);
         if (lastEventTime[baby]) {
           const diffMs = new Date() - lastEventTime[baby];
