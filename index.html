@@ -12,60 +12,86 @@
     .entry { background: #eef; padding: 10px; margin-bottom: 10px; border-radius: 5px; }
     .timer { margin-top: 10px; font-weight: bold; color: #d9534f; }
     label { display: block; margin-top: 10px; }
-    select { width: 100%; padding: 6px; margin-top: 5px; }
+    select, textarea { width: 100%; padding: 6px; margin-top: 5px; }
     button { margin-top: 10px; padding: 8px 12px; background: #4CAF50; color: white; border: none; cursor: pointer; }
     button:hover { background: #45a049; }
   </style>
 </head>
 <body>
-  <h1>🍼 Harsh & Dev Feeding & Diaper Tracker</h1>
+  <h1>🍼 Twin Baby Feeding & Diaper Tracker</h1>
 
-  <!-- Harsh Section -->
-  <div class="baby-section" id="babyHarsh">
-    <h2>Harsh</h2>
-    <form onsubmit="logEvent(event, 'Harsh')">
+  <!-- Baby A Section -->
+  <div class="baby-section" id="babyA">
+    <h2>Baby A</h2>
+    <form onsubmit="logEvent(event, 'A')">
       <label>Event Type:
         <select name="eventType">
           <option value="Feeding">Feeding</option>
           <option value="Diaper">Diaper Change</option>
         </select>
       </label>
+      <label>Details:
+        <select name="details">
+          <option value="Breastfeeding">Breastfeeding</option>
+          <option value="Bottle">Bottle</option>
+          <option value="Solid Food">Solid Food</option>
+          <option value="Wet">Wet Diaper</option>
+          <option value="Dirty">Dirty Diaper</option>
+          <option value="Mixed">Mixed Diaper</option>
+        </select>
+      </label>
+      <label>Quantity/Notes:
+        <textarea name="notes"></textarea>
+      </label>
       <button type="submit">Log Event</button>
     </form>
-    <div class="timer" id="timerHarsh">⏱ Last event: none</div>
+    <div class="timer" id="timerA">⏱ Last event: none</div>
     <div class="log-container">
       <div class="log-column">
         <h3>Feeding Logs</h3>
-        <div class="log" id="logHarsh_feeding"></div>
+        <div class="log" id="logA_feeding"></div>
       </div>
       <div class="log-column">
         <h3>Diaper Logs</h3>
-        <div class="log" id="logHarsh_diaper"></div>
+        <div class="log" id="logA_diaper"></div>
       </div>
     </div>
   </div>
 
-  <!-- Dev Section -->
-  <div class="baby-section" id="babyDev">
-    <h2>Dev</h2>
-    <form onsubmit="logEvent(event, 'Dev')">
+  <!-- Baby B Section -->
+  <div class="baby-section" id="babyB">
+    <h2>Baby B</h2>
+    <form onsubmit="logEvent(event, 'B')">
       <label>Event Type:
         <select name="eventType">
           <option value="Feeding">Feeding</option>
           <option value="Diaper">Diaper Change</option>
         </select>
       </label>
+      <label>Details:
+        <select name="details">
+          <option value="Breastfeeding">Breastfeeding</option>
+          <option value="Bottle">Bottle</option>
+          <option value="Solid Food">Solid Food</option>
+          <option value="Wet">Wet Diaper</option>
+          <option value="Dirty">Dirty Diaper</option>
+          <option value="Mixed">Mixed Diaper</option>
+        </select>
+      </label>
+      <label>Quantity/Notes:
+        <textarea name="notes"></textarea>
+      </label>
       <button type="submit">Log Event</button>
     </form>
-    <div class="timer" id="timerDev">⏱ Last event: none</div>
+    <div class="timer" id="timerB">⏱ Last event: none</div>
     <div class="log-container">
       <div class="log-column">
         <h3>Feeding Logs</h3>
-        <div class="log" id="logDev_feeding"></div>
+        <div class="log" id="logB_feeding"></div>
       </div>
       <div class="log-column">
         <h3>Diaper Logs</h3>
-        <div class="log" id="logDev_diaper"></div>
+        <div class="log" id="logB_diaper"></div>
       </div>
     </div>
   </div>
@@ -77,24 +103,25 @@
     const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN2c3Vma21rdmRsc3FrYm1haXRoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIzMDU1NTQsImV4cCI6MjEwNzg4MTU1NH0.Y8qw6ZbwarBk301fR4R-7hbowdguzOKWb_8FVNijNkw"; // replace with your anon key
     const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-    let lastEventTime = { Harsh: null, Dev: null };
+    let lastEventTime = { A: null, B: null };
 
     // Insert into Supabase
     async function logEvent(event, baby) {
       event.preventDefault();
       const form = event.target;
       const type = form.eventType.value;
+      const details = form.details.value;
+      const notes = form.notes.value;
       const time = new Date();
 
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('baby_logs')
-        .insert([{ baby_name: baby, event_type: type }]);
+        .insert([{ baby_name: baby, event_type: type, details: details, notes: notes }]);
 
       if (error) {
         console.error("Insert error:", error);
         alert("Error saving log!");
       } else {
-        console.log("Inserted:", data);
         loadLogs(baby); // refresh logs after insert
       }
 
@@ -106,7 +133,7 @@
     async function loadLogs(baby) {
       const { data, error } = await supabase
         .from('baby_logs')
-        .select('created_at,event_type')
+        .select('created_at,event_type,details,notes')
         .eq('baby_name', baby)
         .order('created_at', { ascending: false })
         .limit(5);
@@ -124,7 +151,7 @@
       data.forEach(entry => {
         const div = document.createElement('div');
         div.className = 'entry';
-        div.innerHTML = `<strong>${new Date(entry.created_at).toLocaleString()}</strong>`;
+        div.innerHTML = `<strong>${new Date(entry.created_at).toLocaleString()}</strong><br>${entry.event_type}: ${entry.details}<br>Notes: ${entry.notes}`;
         if (entry.event_type === 'Feeding') {
           feedingDiv.appendChild(div);
         } else {
@@ -135,7 +162,7 @@
 
     // Update timers
     function updateTimers() {
-      ['Harsh','Dev'].forEach(baby => {
+      ['A','B'].forEach(baby => {
         const timerDiv = document.getElementById('timer' + baby);
         if (lastEventTime[baby]) {
           const diffMs = new Date() - lastEventTime[baby];
@@ -156,9 +183,21 @@
 
     // Load logs on page load
     window.onload = () => {
-      loadLogs("Harsh");
-      loadLogs("Dev");
+      loadLogs("A");
+      loadLogs("B");
     };
+
+    // Realtime subscription
+    supabase
+      .channel('realtime:logs')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'baby_logs' }, payload => {
+        const baby = payload.new?.baby_name;
+        if (baby) {
+          loadLogs(baby);
+          lastEventTime[baby] = new Date(payload.new.created_at);
+        }
+      })
+      .subscribe();
   </script>
 </body>
 </html>
